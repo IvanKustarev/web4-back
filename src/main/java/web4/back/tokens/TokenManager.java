@@ -1,10 +1,13 @@
-package web4.back.users.tokens;
+package web4.back.tokens;
 
 import io.jsonwebtoken.*;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import web4.back.db.DBManaging;
 
 import java.io.File;
 import java.io.FileReader;
@@ -15,12 +18,65 @@ import java.security.PublicKey;
 import java.security.Security;
 import java.util.Date;
 
-public class TokenUtils {
+@Component
+public class TokenManager implements TokensManaging {
 
     protected static PublicKey publicKey = readPublicKey();
     protected static PrivateKey privateKey = readPrivateKey();
 
-    public static boolean check(Token token) {
+    @Autowired
+    private DBManaging dbManaging;
+
+
+    @Override
+    public Token generateSmall(String userIdentify) {
+        return generate(userIdentify, 5000);
+    }
+
+    @Override
+    public Token generateAccess(String userIdentify) {
+        return generate(userIdentify, 1800000);
+    }
+
+    @Override
+    public Token generateRefresh(String userIdentify) {
+        return generate(userIdentify, 86400000);
+    }
+
+    @Override
+    public String findUserIdentify(Token token) {
+        return Jwts.parser().setSigningKey(publicKey).parseClaimsJws(token.toString()).getBody().get("userIdentify", String.class);
+    }
+
+    @Override
+    public ARTokens updateTokens(Token refreshToken) {
+        if (check(refreshToken)) {
+            String userId = findUserIdentify(refreshToken);
+            if(dbManaging.findUserById(new Long(userId)).getRefreshToken().equals(refreshToken.toString())){
+                Token newAccessToken = generateAccess(userId);
+                Token newRefreshToken = generateRefresh(userId);
+                dbManaging.addAccessToken(new Long(userId), newAccessToken);
+                dbManaging.addRefreshToken(new Long(userId), newRefreshToken);
+                return new ARTokens(newAccessToken, newRefreshToken);
+            }
+        }
+        return null;
+    }
+
+    private Token generate(String userIdentify, long period) {
+        readPrivateKey();
+
+        JwtBuilder builder = Jwts.builder();
+        builder.claim("userIdentify", userIdentify);
+        Date date = new Date();
+        builder.setIssuedAt(date);
+        builder.setExpiration(new Date(date.getTime() + period));
+        builder.signWith(SignatureAlgorithm.HS256, privateKey);
+        return new Token(builder.compact());
+    }
+
+    @Override
+    public boolean check(Token token) {
         try {
             Jwts.parser().setSigningKey(publicKey).parseClaimsJws(token.toString());
 //            return State.VALID;
@@ -41,19 +97,6 @@ public class TokenUtils {
 //            return State.LIFE_TIME_OUT;
             return false;
         }
-    }
-
-    public static Token create(int id, long period) {
-
-        readPrivateKey();
-
-        JwtBuilder builder = Jwts.builder();
-        builder.claim("userId", id);
-        Date date = new Date();
-        builder.setIssuedAt(date);
-        builder.setExpiration(new Date(date.getTime() + period));
-        builder.signWith(SignatureAlgorithm.HS256, privateKey);
-        return new Token(builder.compact());
     }
 
     public static PrivateKey readPrivateKey() {

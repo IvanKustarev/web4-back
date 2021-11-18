@@ -1,6 +1,6 @@
 package web4.back.dots;
 
-import web4.back.users.tokens.Token;
+import web4.back.tokens.Token;
 
 import java.util.List;
 

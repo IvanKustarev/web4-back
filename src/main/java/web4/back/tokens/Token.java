@@ -1,4 +1,4 @@
-package web4.back.users.tokens;
+package web4.back.tokens;
 
 public class Token {
     private String token;

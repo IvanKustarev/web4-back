@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import web4.back.dots.Dot;
 import web4.back.dots.DotManaging;
-import web4.back.users.TokenAndSalt;
+import web4.back.tokens.TokenAndSalt;
 import web4.back.users.UserManaging;
-import web4.back.users.tokens.*;
+import web4.back.tokens.*;
 
 import java.util.List;
 
@@ -65,7 +65,7 @@ public class Controller {
     @CrossOrigin
     @PostMapping("/checkToken")
     private boolean checkToken(@RequestParam("token") Token token){
-        return tokensManaging.checkToken(token);
+        return tokensManaging.check(token);
     }
 
     @CrossOrigin

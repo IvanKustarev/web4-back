@@ -1,11 +1,12 @@
 package web4.back.users;
 
-import web4.back.users.tokens.ARTokens;
-import web4.back.users.tokens.Token;
+import web4.back.tokens.ARTokens;
+import web4.back.tokens.Token;
+import web4.back.tokens.TokenAndSalt;
 
 public interface UserManaging {
     TokenAndSalt generateTokenAndSalt(String username);
-    ARTokens putPassword(Token token, String password);
+    boolean putPassword(Token token, String password);
     boolean checkUser(String userName);
     TokenAndSalt getTokenAndSalt(String username);
     ARTokens postPassword(Token token, String password);

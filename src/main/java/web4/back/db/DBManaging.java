@@ -2,13 +2,18 @@ package web4.back.db;
 
 import web4.back.dots.Dot;
 import web4.back.users.User;
+import web4.back.tokens.Token;
 
 import java.util.List;
 
 public interface DBManaging {
     User findUserByName(String username);
-    void addUser(String username);
+    User findUserById(long userId);
+    void addUser(User user);
     void addPasswordForUser(long userId, String password);
-    void addDot(long userId, Dot dot);
+    void addDot(Dot dot);
     List<Dot> getUserDots(long userId);
+    void addAccessToken(long userId, Token token);
+    void addRefreshToken(long userId, Token token);
+    User findUserByAccess(Token accessToken);
 }
