@@ -7,4 +7,5 @@ public interface TokensManaging {
     Token generateSmall(String userIdentify);
     Token generateAccess(String userIdentify);
     Token generateRefresh(String userIdentify);
+
 }

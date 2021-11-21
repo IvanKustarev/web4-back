@@ -5,7 +5,8 @@ import org.springframework.stereotype.Component;
 import web4.back.dots.Dot;
 import web4.back.repositories.DotsRepository;
 import web4.back.repositories.UsersRepository;
-import web4.back.users.User;
+import web4.back.users.model.AuthType;
+import web4.back.users.model.User;
 import web4.back.tokens.Token;
 
 import java.util.List;
@@ -18,11 +19,6 @@ public class DBManager implements DBManaging{
 
     @Autowired
     private DotsRepository dotsRepository;
-
-    @Override
-    public User findUserByName(String username) {
-        return usersRepository.findByUsername(username);
-    }
 
     @Override
     public void addUser(User user) {
@@ -68,5 +64,10 @@ public class DBManager implements DBManaging{
     @Override
     public User findUserByAccess(Token accessToken) {
         return usersRepository.findByAccessToken(accessToken.toString());
+    }
+
+    @Override
+    public User findUserByNameAndAuthType(String name, AuthType authType) {
+        return usersRepository.findByUsernameAndAuthType(name, authType);
     }
 }

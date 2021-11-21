@@ -1,13 +1,13 @@
 package web4.back.db;
 
 import web4.back.dots.Dot;
-import web4.back.users.User;
+import web4.back.users.model.AuthType;
+import web4.back.users.model.User;
 import web4.back.tokens.Token;
 
 import java.util.List;
 
 public interface DBManaging {
-    User findUserByName(String username);
     User findUserById(long userId);
     void addUser(User user);
     void addPasswordForUser(long userId, String password);
@@ -15,5 +15,6 @@ public interface DBManaging {
     List<Dot> getUserDots(long userId);
     void addAccessToken(long userId, Token token);
     void addRefreshToken(long userId, Token token);
-    User findUserByAccess(Token accessToken);
+    User findUserByNameAndAuthType(String name, AuthType authType);
+    User findUserByAccess(Token token);
 }

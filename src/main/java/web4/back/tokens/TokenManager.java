@@ -71,7 +71,7 @@ public class TokenManager implements TokensManaging {
         Date date = new Date();
         builder.setIssuedAt(date);
         builder.setExpiration(new Date(date.getTime() + period));
-        builder.signWith(SignatureAlgorithm.HS256, privateKey);
+        builder.signWith(privateKey);
         return new Token(builder.compact());
     }
 

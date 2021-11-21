@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import web4.back.db.DBManaging;
 import web4.back.tokens.Token;
-import web4.back.users.User;
+import web4.back.users.model.User;
 
 import java.util.List;
 

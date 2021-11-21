@@ -10,4 +10,6 @@ public interface UserManaging {
     boolean checkUser(String userName);
     TokenAndSalt getTokenAndSalt(String username);
     ARTokens postPassword(Token token, String password);
+    ARTokens signInByVk(String vkId, String parametersForHash, String sig);
+    ARTokens signInByGoogle(String idTokenString);
 }

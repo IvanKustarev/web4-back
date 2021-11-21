@@ -16,8 +16,13 @@ public class Dot {
     @Id
     @GeneratedValue
     private Long id;
-    private Integer x;
-    private Integer y;
+    private Double x;
+    private Double y;
     private Boolean get;
     private Long userId;
+
+    public Dot(Double x, Double y) {
+        this.x = x;
+        this.y = y;
+    }
 }
