@@ -3,10 +3,9 @@ package web4.back.dots;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import web4.back.users.model.User;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Getter
 @Setter
@@ -20,7 +19,9 @@ public class Dot {
     private Double y;
     private Double r;
     private Boolean get;
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public Dot(Double x, Double y, Double r) {
         this.x = x;

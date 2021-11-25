@@ -2,8 +2,9 @@ package web4.back.users;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import web4.back.db.DBManaging;
 import web4.back.AuthResponse;
+import web4.back.db.DotDBService;
+import web4.back.db.UserDBService;
 import web4.back.tokens.Token;
 import web4.back.tokens.TokenAndSalt;
 import web4.back.tokens.TokensManaging;
@@ -18,7 +19,9 @@ public class UsersManager implements UserManaging {
     @Autowired
     private TokensManaging tokensManaging;
     @Autowired
-    private DBManaging dbManaging;
+    private DotDBService dotDBService;
+    @Autowired
+    private UserDBService userDBService;
     @Autowired
     private SignInValidators signInValidators;
 
@@ -28,7 +31,7 @@ public class UsersManager implements UserManaging {
         String salt = generateSalt();
         User user = new User(username, salt, AuthType.USUAL);
         user.setAccessToken(token.toString());
-        dbManaging.addUser(user);
+        userDBService.addUser(user);
         return new TokenAndSalt(token, salt);
     }
 
@@ -36,8 +39,8 @@ public class UsersManager implements UserManaging {
     public boolean putPassword(Token token, String password) {
         if (tokensManaging.check(token)) {
             String username = tokensManaging.findUserIdentify(token);
-            User user = dbManaging.findUserByNameAndAuthType(username, AuthType.USUAL);
-            dbManaging.addPasswordForUser(user.getId(), password);
+            User user = userDBService.findUserByNameAndAuthType(username, AuthType.USUAL);
+            userDBService.addPasswordForUser(user.getId(), password);
             return true;
         } else {
             return false;
@@ -46,7 +49,7 @@ public class UsersManager implements UserManaging {
 
     @Override
     public boolean checkUser(String username) {
-        User user = dbManaging.findUserByNameAndAuthType(username, AuthType.USUAL);
+        User user = userDBService.findUserByNameAndAuthType(username, AuthType.USUAL);
         if (user != null) {
             return true;
         } else {
@@ -56,7 +59,7 @@ public class UsersManager implements UserManaging {
 
     @Override
     public TokenAndSalt getTokenAndSalt(String username) {
-        User user = dbManaging.findUserByNameAndAuthType(username, AuthType.USUAL);
+        User user = userDBService.findUserByNameAndAuthType(username, AuthType.USUAL);
         if (user != null) {
             return new TokenAndSalt(tokensManaging.generateSmall(String.valueOf(user.getId())), user.getSalt());
         }
@@ -67,12 +70,12 @@ public class UsersManager implements UserManaging {
     public AuthResponse postPassword(Token token, String password) {
         if (tokensManaging.check(token)) {
             String userId = tokensManaging.findUserIdentify(token);
-            User user = dbManaging.findUserById(Long.valueOf(userId));
+            User user = userDBService.findUserById(Long.valueOf(userId));
             if (user.getPassword().equals(password)) {
                 Token accessToken = tokensManaging.generateAccess(String.valueOf(user.getId()));
                 Token refreshToken = tokensManaging.generateRefresh(String.valueOf(user.getId()));
-                dbManaging.addAccessToken(user.getId(), accessToken);
-                dbManaging.addRefreshToken(user.getId(), refreshToken);
+                userDBService.addAccessToken(user.getId(), accessToken);
+                userDBService.addRefreshToken(user.getId(), refreshToken);
                 return new AuthResponse(accessToken, refreshToken, user.getId());
             } else {
                 return null;
@@ -104,16 +107,16 @@ public class UsersManager implements UserManaging {
         if (userName == null) {
             return null;
         } else {
-            User user = dbManaging.findUserByNameAndAuthType(userName, authType);
+            User user = userDBService.findUserByNameAndAuthType(userName, authType);
             if (user == null) {
                 user = new User(userName, null, authType);
-                dbManaging.addUser(user);
-                user = dbManaging.findUserByNameAndAuthType(userName, authType);
+                userDBService.addUser(user);
+                user = userDBService.findUserByNameAndAuthType(userName, authType);
             }
             Token accessToken = tokensManaging.generateAccess(String.valueOf(user.getId()));
             Token refreshToken = tokensManaging.generateRefresh(String.valueOf(user.getId()));
-            dbManaging.addAccessToken(user.getId(), accessToken);
-            dbManaging.addRefreshToken(user.getId(), refreshToken);
+            userDBService.addAccessToken(user.getId(), accessToken);
+            userDBService.addRefreshToken(user.getId(), refreshToken);
             return new AuthResponse(accessToken, refreshToken, user.getId());
         }
     }

@@ -8,11 +8,9 @@ import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import web4.back.AuthResponse;
-import web4.back.db.DBManaging;
+import web4.back.db.UserDBService;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -26,7 +24,7 @@ public class TokenManager implements TokensManaging {
     protected static PrivateKey privateKey = readPrivateKey();
 
     @Autowired
-    private DBManaging dbManaging;
+    private UserDBService userDBService;
 
 
     @Override
@@ -53,11 +51,11 @@ public class TokenManager implements TokensManaging {
     public AuthResponse updateTokens(Token refreshToken) {
         if (check(refreshToken)) {
             String userId = findUserIdentify(refreshToken);
-            if(dbManaging.findUserById(new Long(userId)).getRefreshToken().equals(refreshToken.toString())){
+            if(userDBService.findUserById(new Long(userId)).getRefreshToken().equals(refreshToken.toString())){
                 Token newAccessToken = generateAccess(userId);
                 Token newRefreshToken = generateRefresh(userId);
-                dbManaging.addAccessToken(new Long(userId), newAccessToken);
-                dbManaging.addRefreshToken(new Long(userId), newRefreshToken);
+                userDBService.addAccessToken(new Long(userId), newAccessToken);
+                userDBService.addRefreshToken(new Long(userId), newRefreshToken);
                 return new AuthResponse(newAccessToken, newRefreshToken, new Long(userId));
             }
         }
@@ -107,8 +105,8 @@ public class TokenManager implements TokensManaging {
 
             ClassLoader classLoader = ClassLoader.getSystemClassLoader();
             File file = new File(classLoader.getResource("key.pem").getFile());
-
             PEMParser pemParser = new PEMParser(new FileReader(file));
+
             JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
             Object object = pemParser.readObject();
             KeyPair kp = converter.getKeyPair((PEMKeyPair) object);
