@@ -3,7 +3,7 @@ package web4.back.users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import web4.back.db.DBManaging;
-import web4.back.tokens.ARTokens;
+import web4.back.AuthResponse;
 import web4.back.tokens.Token;
 import web4.back.tokens.TokenAndSalt;
 import web4.back.tokens.TokensManaging;
@@ -64,7 +64,7 @@ public class UsersManager implements UserManaging {
     }
 
     @Override
-    public ARTokens postPassword(Token token, String password) {
+    public AuthResponse postPassword(Token token, String password) {
         if (tokensManaging.check(token)) {
             String userId = tokensManaging.findUserIdentify(token);
             User user = dbManaging.findUserById(Long.valueOf(userId));
@@ -73,7 +73,7 @@ public class UsersManager implements UserManaging {
                 Token refreshToken = tokensManaging.generateRefresh(String.valueOf(user.getId()));
                 dbManaging.addAccessToken(user.getId(), accessToken);
                 dbManaging.addRefreshToken(user.getId(), refreshToken);
-                return new ARTokens(accessToken, refreshToken);
+                return new AuthResponse(accessToken, refreshToken, user.getId());
             } else {
                 return null;
             }
@@ -83,13 +83,13 @@ public class UsersManager implements UserManaging {
     }
 
     @Override
-    public ARTokens signInByVk(String vkId, String parametersForHash, String sig) {
+    public AuthResponse signInByVk(String vkId, String parametersForHash, String sig) {
         String userId = signInValidators.getValidVkUserId(vkId, parametersForHash, sig);
         return addSignedInUser(userId, AuthType.VK);
     }
 
     @Override
-    public ARTokens signInByGoogle(String idTokenString) {
+    public AuthResponse signInByGoogle(String idTokenString) {
         String userId = signInValidators.getValidGoogleUserId(idTokenString);
         return addSignedInUser(userId, AuthType.GOOGLE);
     }
@@ -100,7 +100,7 @@ public class UsersManager implements UserManaging {
      * @param authType
      * @return
      */
-    private ARTokens addSignedInUser(String userName, AuthType authType){
+    private AuthResponse addSignedInUser(String userName, AuthType authType){
         if (userName == null) {
             return null;
         } else {
@@ -114,7 +114,7 @@ public class UsersManager implements UserManaging {
             Token refreshToken = tokensManaging.generateRefresh(String.valueOf(user.getId()));
             dbManaging.addAccessToken(user.getId(), accessToken);
             dbManaging.addRefreshToken(user.getId(), refreshToken);
-            return new ARTokens(accessToken, refreshToken);
+            return new AuthResponse(accessToken, refreshToken, user.getId());
         }
     }
 

@@ -2,6 +2,7 @@ package web4.back.dots;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import web4.back.AreaChecker;
 import web4.back.db.DBManaging;
 import web4.back.tokens.Token;
 import web4.back.users.model.User;
@@ -10,6 +11,8 @@ import java.util.List;
 
 @Component
 public class DotManager implements DotManaging{
+    @Autowired
+    private AreaChecker areaChecker;
 
     @Autowired
     private DBManaging dbManaging;
@@ -29,7 +32,11 @@ public class DotManager implements DotManaging{
     }
 
     private Dot checkDot(Dot dot){
-        dot.setGet(true);
+        if(areaChecker.checkArea(dot)){
+            dot.setGet(true);
+        }else {
+            dot.setGet(false);
+        }
         return dot;
     }
 }

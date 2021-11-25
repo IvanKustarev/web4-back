@@ -18,11 +18,13 @@ public class Dot {
     private Long id;
     private Double x;
     private Double y;
+    private Double r;
     private Boolean get;
     private Long userId;
 
-    public Dot(Double x, Double y) {
+    public Dot(Double x, Double y, Double r) {
         this.x = x;
         this.y = y;
+        this.r = r;
     }
 }

@@ -7,6 +7,7 @@ import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import web4.back.AuthResponse;
 import web4.back.db.DBManaging;
 
 import java.io.File;
@@ -49,7 +50,7 @@ public class TokenManager implements TokensManaging {
     }
 
     @Override
-    public ARTokens updateTokens(Token refreshToken) {
+    public AuthResponse updateTokens(Token refreshToken) {
         if (check(refreshToken)) {
             String userId = findUserIdentify(refreshToken);
             if(dbManaging.findUserById(new Long(userId)).getRefreshToken().equals(refreshToken.toString())){
@@ -57,7 +58,7 @@ public class TokenManager implements TokensManaging {
                 Token newRefreshToken = generateRefresh(userId);
                 dbManaging.addAccessToken(new Long(userId), newAccessToken);
                 dbManaging.addRefreshToken(new Long(userId), newRefreshToken);
-                return new ARTokens(newAccessToken, newRefreshToken);
+                return new AuthResponse(newAccessToken, newRefreshToken, new Long(userId));
             }
         }
         return null;
