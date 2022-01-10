@@ -26,7 +26,6 @@ public class TokenManager implements TokensManaging {
     @Autowired
     private UserDBService userDBService;
 
-
     @Override
     public Token generateSmall(String userIdentify) {
         return generate(userIdentify, 5000);

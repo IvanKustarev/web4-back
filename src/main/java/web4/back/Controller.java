@@ -9,6 +9,7 @@ import web4.back.tokens.Token;
 import web4.back.tokens.TokenAndSalt;
 import web4.back.tokens.TokensManaging;
 import web4.back.users.UserManaging;
+import web4.back.users.model.User;
 
 import java.util.List;
 
@@ -57,8 +58,17 @@ public class Controller {
     @CrossOrigin
     @PostMapping("/getMyDots")
     private List<Dot> getMyDots(@RequestParam("accessToken") String accessToken) {
-//        System.out.println(accessToken);
-        return dotManaging.getMyDots(new Token(accessToken));
+        List<Dot> dots = dotManaging.getMyDots(new Token(accessToken));
+        /*
+        for - необходимо заполнить поля пользователей заглушками,
+        а не то будет фозникать StackOverflow при попытке загрузки
+        точек с пользователями, у каждого есть точки, у каждой точки
+        есть пользователь и тд
+         */
+        for(Dot dot : dots){
+            dot.setUser(new User());
+        }
+        return dots;
     }
 
     @CrossOrigin
