@@ -12,7 +12,7 @@ public class AuthResponse {
     long userId;
     String accessToken;
     String refreshToken;
-
+    
     public AuthResponse(Token accessToken, Token refreshToken, long userId) {
         this.userId = userId;
         this.accessToken = accessToken.toString();

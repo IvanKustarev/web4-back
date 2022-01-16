@@ -77,22 +77,17 @@ public class TokenManager implements TokensManaging {
     public boolean check(Token token) {
         try {
             Jwts.parser().setSigningKey(publicKey).parseClaimsJws(token.toString());
-//            return State.VALID;
             return true;
         } catch (MalformedJwtException e) {
-//            return State.IN_VALID;
             return false;
         } catch (IllegalArgumentException e) {
             //БОЛЬШЕ ДЛЯ ПРОВЕРКИ, ТК ВЫСКАКИВАЕТ КОГДА ПРИШЁЛ НЕ ВАЛИДНЫЙ КЛЮЧ,
             //ЧТО ОЗНАЧАЕТ ОШУБКУ СО СТОРОНЫ РАЗРАБОТЧИКА
-//            return State.WRONG_KEY;
             return false;
         } catch (SignatureException e) {
             e.printStackTrace();
-//            return State.WRONG_SIGNATURE;
             return false;
         } catch (ExpiredJwtException e) {
-//            return State.LIFE_TIME_OUT;
             return false;
         }
     }
