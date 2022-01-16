@@ -5,12 +5,14 @@ import org.springframework.stereotype.Component;
 import web4.back.AreaChecker;
 import web4.back.db.DotDBService;
 import web4.back.db.UserDBService;
+import web4.back.profile.Profile;
 import web4.back.tokens.Token;
 import web4.back.users.model.User;
 
 import java.util.List;
 
 @Component
+@Profile
 public class DotManager implements DotManaging{
     @Autowired
     private AreaChecker areaChecker;
