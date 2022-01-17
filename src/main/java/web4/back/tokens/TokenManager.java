@@ -1,6 +1,7 @@
 package web4.back.tokens;
 
 import io.jsonwebtoken.*;
+import org.apache.log4j.Logger;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 import web4.back.AuthResponse;
 import web4.back.db.UserDBService;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -20,8 +22,16 @@ import java.util.Date;
 @Component
 public class TokenManager implements TokensManaging {
 
-    protected static PublicKey publicKey = readPublicKey();
-    protected static PrivateKey privateKey = readPrivateKey();
+    private static final Logger log = Logger.getLogger(TokenManager.class);
+
+    protected static PublicKey publicKey;
+    protected static PrivateKey privateKey;
+
+    @PostConstruct
+    public void readKeysFromResources() throws IOException {
+        publicKey = readPublicKey();
+        privateKey = readPrivateKey();
+    }
 
     @Autowired
     private UserDBService userDBService;
@@ -50,7 +60,7 @@ public class TokenManager implements TokensManaging {
     public AuthResponse updateTokens(Token refreshToken) {
         if (check(refreshToken)) {
             String userId = findUserIdentify(refreshToken);
-            if(userDBService.findUserById(new Long(userId)).getRefreshToken().equals(refreshToken.toString())){
+            if (userDBService.findUserById(new Long(userId)).getRefreshToken().equals(refreshToken.toString())) {
                 Token newAccessToken = generateAccess(userId);
                 Token newRefreshToken = generateRefresh(userId);
                 userDBService.addAccessToken(new Long(userId), newAccessToken);
@@ -62,7 +72,7 @@ public class TokenManager implements TokensManaging {
     }
 
     private Token generate(String userIdentify, long period) {
-        readPrivateKey();
+//        readPrivateKey();
 
         JwtBuilder builder = Jwts.builder();
         builder.claim("userIdentify", userIdentify);
@@ -92,39 +102,54 @@ public class TokenManager implements TokensManaging {
         }
     }
 
-    public static PrivateKey readPrivateKey() {
+    public PrivateKey readPrivateKey() throws IOException {
 
+        final String keyFileName = "key.pem";
         try {
+            log.info("Start read private key");
             Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-
-            ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-            File file = new File(classLoader.getResource("key.pem").getFile());
-            PEMParser pemParser = new PEMParser(new FileReader(file));
-
-            JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
-            Object object = pemParser.readObject();
-            KeyPair kp = converter.getKeyPair((PEMKeyPair) object);
-            return kp.getPrivate();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    public static PublicKey readPublicKey() {
-        try {
-            ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-            File file = new File(classLoader.getResource("public.pem").getFile());
-
-            try (FileReader keyReader = new FileReader(file)) {
-                PEMParser pemParser = new PEMParser(keyReader);
-                JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
-                SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(pemParser.readObject());
-                return converter.getPublicKey(publicKeyInfo);
+            ClassLoader classLoader = getClass().getClassLoader();
+            InputStream inputStream = classLoader.getResourceAsStream(keyFileName);
+            if (inputStream == null) {
+                log.error("File " + keyFileName + " not found");
+                throw new FileNotFoundException("File " + keyFileName + " not found");
+            } else {
+                PEMParser pemParser = new PEMParser(new InputStreamReader(inputStream));
+                JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
+                Object object = pemParser.readObject();
+                KeyPair kp = converter.getKeyPair((PEMKeyPair) object);
+                PrivateKey privateKey = kp.getPrivate();
+                log.info("Finish read private key");
+                return privateKey;
             }
         } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            log.error(e);
+            throw e;
+        }
+
+    }
+
+    public PublicKey readPublicKey() throws IOException {
+        final String keyFileName = "public.pem";
+        try {
+            log.info("Start read public key");
+            ClassLoader classLoader = getClass().getClassLoader();
+            InputStream inputStream = classLoader.getResourceAsStream(keyFileName);
+            if (inputStream == null) {
+                log.error("File " + keyFileName + " not found");
+                throw new FileNotFoundException("File " + keyFileName + " not found");
+            } else {
+                Reader reader = new InputStreamReader(inputStream);
+                PEMParser pemParser = new PEMParser(reader);
+                JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
+                SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(pemParser.readObject());
+                PublicKey publicKey = converter.getPublicKey(publicKeyInfo);
+                log.info("Finish read public key");
+                return publicKey;
+            }
+        } catch (IOException e) {
+            log.error(e);
+            throw e;
         }
     }
 }
